@@ -200,17 +200,23 @@ button[data-baseweb="tab"][aria-selected="true"] p {
 /* Inputs */
 .stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
     border-radius: 8px !important;
-    border: 1px solid rgba(0, 240, 255, 0.2) !important;
-    background: rgba(10, 10, 15, 0.8) !important;
-    color: #00f0ff !important;
+    border: 2px solid rgba(0, 240, 255, 0.5) !important;
+    background: rgba(20, 25, 40, 0.95) !important;
+    color: #ffffff !important;
     font-family: 'Rajdhani', sans-serif !important;
-    font-weight: 500 !important;
-    padding: 0.5rem 1rem !important;
+    font-weight: 700 !important;
+    font-size: 1.15rem !important;
+    padding: 0.75rem 1.25rem !important;
     transition: all 0.3s ease !important;
 }
 .stTextInput>div>div>input:focus, .stSelectbox>div>div>div:focus, .stTextArea>div>div>textarea:focus {
     border-color: #00f0ff !important;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2) !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
+}
+.stSelectbox svg {
+    fill: #00f0ff !important;
+    width: 24px !important;
+    height: 24px !important;
 }
 
 /* Sidebar styling */
