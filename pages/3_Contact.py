@@ -74,6 +74,19 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
     width: 24px !important;
     height: 24px !important;
 }
+
+/* Footer fixed to bottom */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(5, 5, 10, 0.95);
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    z-index: 999;
+}
 .stButton>button {
     background: linear-gradient(90deg, #0055ff 0%, #00f0ff 100%) !important;
     color: #ffffff !important;
@@ -122,3 +135,6 @@ with col2:
                 st.success("Your message has been sent successfully! We will get back to you shortly.")
             else:
                 st.error("Please fill in all required fields (Name, Email, Message).")
+
+
+st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)

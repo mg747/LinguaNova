@@ -219,6 +219,31 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     height: 24px !important;
 }
 
+/* Hide password visibility toggle */
+[data-testid="stTextInputPassword"] button {
+    display: none !important;
+}
+
+/* Match AI Coach and Dictionary text */
+.msg-card, .dict-card {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 1.15rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Footer fixed to bottom */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(5, 5, 10, 0.95);
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    z-index: 999;
+}
+
 /* Sidebar styling */
 [data-testid="stSidebar"] {
     background: rgba(10, 10, 15, 0.95) !important;

@@ -66,6 +66,19 @@ h1, h2, h3, h4, h5, h6 {
     width: 24px !important;
     height: 24px !important;
 }
+
+/* Footer fixed to bottom */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(5, 5, 10, 0.95);
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    z-index: 999;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -96,3 +109,6 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+
+st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
