@@ -49,8 +49,8 @@ h1, h2, h3, h4, h5, h6 {
 .stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
     border-radius: 8px !important;
     border: 2px solid rgba(0, 240, 255, 0.5) !important;
-    background: rgba(20, 25, 40, 0.95) !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 1.15rem !important;
@@ -62,7 +62,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
 }
 .stSelectbox svg {
-    fill: #00f0ff !important;
+    fill: #000000 !important;
     width: 24px !important;
     height: 24px !important;
 }
@@ -79,6 +79,8 @@ h1, h2, h3, h4, h5, h6 {
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 999;
 }
+/* Hide placeholders globally */
+::placeholder { color: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -128,3 +130,5 @@ st.markdown("""
 
 
 st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+
+

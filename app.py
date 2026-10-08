@@ -198,23 +198,28 @@ button[data-baseweb="tab"][aria-selected="true"] p {
 }
 
 /* Inputs */
-.stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
+.stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
     border-radius: 8px !important;
     border: 2px solid rgba(0, 240, 255, 0.5) !important;
-    background: rgba(20, 25, 40, 0.95) !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    background-color: #000000 !important;
+    color: #000000 !important;
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 1.15rem !important;
     padding: 0.75rem 1.25rem !important;
     transition: all 0.3s ease !important;
 }
-.stTextInput>div>div>input:focus, .stSelectbox>div>div>div:focus, .stTextArea>div>div>textarea:focus {
+/* Hide placeholders globally */
+::placeholder {
+    color: transparent !important;
+}
+.stTextInput>div>div>input:focus, .stSelectbox>div>div>div:focus, .stTextArea>div>div>textarea:focus, [data-testid="stChatInput"] textarea:focus {
     border-color: #00f0ff !important;
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
 }
 .stSelectbox svg {
-    fill: #00f0ff !important;
+    fill: #000000 !important;
     width: 24px !important;
     height: 24px !important;
 }
@@ -249,6 +254,8 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     background: rgba(10, 10, 15, 0.95) !important;
     border-right: 1px solid rgba(0, 240, 255, 0.1) !important;
 }
+/* Hide placeholders globally */
+::placeholder { color: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -525,3 +532,5 @@ with tab3:
                     st.error(f"Error fetching dictionary entry: {e}")
 
 st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+
+
