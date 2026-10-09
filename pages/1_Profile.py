@@ -45,28 +45,6 @@ h1, h2, h3, h4, h5, h6 {
     border-color: rgba(0, 240, 255, 0.4) !important;
     box-shadow: 0 15px 40px 0 rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.1) !important;
 }
-/* Inputs */
-.stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
-    border-radius: 8px !important;
-    border: 2px solid rgba(0, 240, 255, 0.5) !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-family: 'Rajdhani', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1.15rem !important;
-    padding: 0.75rem 1.25rem !important;
-    transition: all 0.3s ease !important;
-}
-.stTextInput>div>div>input:focus, .stSelectbox>div>div>div:focus, .stTextArea>div>div>textarea:focus {
-    border-color: #00f0ff !important;
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
-}
-.stSelectbox svg {
-    fill: #000000 !important;
-    width: 24px !important;
-    height: 24px !important;
-}
-
 /* Footer fixed to bottom */
 .app-footer {
     position: fixed;
@@ -79,8 +57,36 @@ h1, h2, h3, h4, h5, h6 {
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 999;
 }
-/* Hide placeholders globally */
-::placeholder { color: transparent !important; }
+
+/* Inputs */
+[data-baseweb="input"], [data-baseweb="base-input"], .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(0, 240, 255, 0.5) !important;
+}
+[data-baseweb="input"] input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
+    color: #000000 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1.15rem !important;
+    padding: 0.75rem 1.25rem !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+[data-baseweb="input"]:focus-within, .stTextArea>div>div>textarea:focus, [data-testid="stChatInput"] textarea:focus {
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
+}
+.stSelectbox svg {
+    fill: #000000 !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+/* Hide password visibility toggle completely */
+[data-baseweb="input"] button, [data-testid="stTextInputPassword"] button, button[aria-label="Show password"], button[title="Show password"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,5 +136,6 @@ st.markdown("""
 
 
 st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+
 
 
