@@ -1,4 +1,3 @@
-import sqlite3
 import streamlit as st
 import google.generativeai as genai
 import time
@@ -8,52 +7,14 @@ import base64
 from audio_recorder_streamlit import audio_recorder
 from dotenv import load_dotenv
 import stripe
+import db_helper
 
 # Explicitly load .env from the same directory as app.py and override
 script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(script_dir, '.env'), override=True)
 
-# Firebase and Stripe Configuration Placeholders
-# import firebase_admin
-# from firebase_admin import credentials, auth
-# stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "sk_test_placeholder")
-
-# Database Setup
-def init_db():
-    conn = sqlite3.connect('chat_history.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS messages
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                  tab TEXT,
-                  role TEXT, 
-                  content TEXT, 
-                  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-    conn.commit()
-    conn.close()
-
-def save_message(tab, role, content):
-    conn = sqlite3.connect('chat_history.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute("INSERT INTO messages (tab, role, content) VALUES (?, ?, ?)", (tab, role, content))
-    conn.commit()
-    conn.close()
-
-def load_messages(tab):
-    conn = sqlite3.connect('chat_history.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute("SELECT role, content FROM messages WHERE tab = ? ORDER BY timestamp ASC", (tab,))
-    rows = c.fetchall()
-    conn.close()
-    return [{"role": r[0], "content": r[1]} for r in rows]
-
-def clear_messages(tab):
-    conn = sqlite3.connect('chat_history.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute("DELETE FROM messages WHERE tab = ?", (tab,))
-    conn.commit()
-    conn.close()
-
-init_db()
+# Initialize database
+db_helper.init_db()
 
 st.set_page_config(page_title="LinguaNova", page_icon="🌐", layout="wide", initial_sidebar_state="expanded")
 
@@ -99,9 +60,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glass-card:hover, div[data-testid="stVerticalBlockBorderWrapper"]:hover {
-    transform: translateY(-5px) scale(1.01) !important;
+    transform: translateY(-4px) scale(1.008) !important;
     border-color: rgba(0, 240, 255, 0.4) !important;
-    box-shadow: 0 15px 40px 0 rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    box-shadow: 0 14px 40px 0 rgba(0, 240, 255, 0.2), inset 0 1px 0 rgba(255,255,255,0.1) !important;
 }
 
 /* App Hero Section */
@@ -109,7 +70,7 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(0, 240, 255, 0.1) 100%);
     border: 1px solid rgba(0, 240, 255, 0.3);
     border-radius: 20px;
-    padding: 3rem 2rem;
+    padding: 2.5rem 2rem;
     text-align: center;
     box-shadow: 0 0 30px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05);
     margin-bottom: 2rem;
@@ -117,22 +78,8 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
 }
 
-.hero-container::before {
-    content: '';
-    position: absolute;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(0, 240, 255, 0.1), transparent);
-    transform: rotate(45deg);
-    animation: sweep 6s infinite linear;
-}
-
-@keyframes sweep {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
-}
-
 .hero-title {
-    font-size: 4rem !important;
+    font-size: 3.5rem !important;
     font-weight: 900 !important;
     background: linear-gradient(to right, #00f0ff, #0055ff);
     -webkit-background-clip: text;
@@ -163,6 +110,13 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: -0.5rem !important;
     color: #00ffaa !important;
     box-shadow: 0 0 15px rgba(0, 255, 170, 0.1) !important;
+}
+
+/* Match AI Coach and Dictionary text */
+.msg-card, .dict-card {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 1.15rem !important;
+    line-height: 1.5 !important;
 }
 
 /* Tabs */
@@ -197,33 +151,7 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     background: linear-gradient(90deg, #00f0ff 0%, #0055ff 100%) !important;
 }
 
-/* Match AI Coach and Dictionary text */
-.msg-card, .dict-card {
-    font-family: 'Rajdhani', sans-serif !important;
-    font-size: 1.15rem !important;
-    line-height: 1.5 !important;
-}
-
-/* Footer fixed to bottom */
-.app-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(5, 5, 10, 0.95);
-    padding: 15px;
-    text-align: center;
-    border-top: 1px solid rgba(0, 240, 255, 0.2);
-    z-index: 999;
-}
-
-/* Sidebar styling */
-[data-testid="stSidebar"] {
-    background: rgba(10, 10, 15, 0.95) !important;
-    border-right: 1px solid rgba(0, 240, 255, 0.1) !important;
-}
-
-/* Inputs */
+/* Inputs: clean white background, black bold text */
 [data-baseweb="input"], [data-baseweb="base-input"], .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
     background-color: #ffffff !important;
     border-radius: 8px !important;
@@ -246,11 +174,31 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     width: 24px !important;
     height: 24px !important;
 }
+
 /* Hide password visibility toggle completely */
 [data-baseweb="input"] button, [data-testid="stTextInputPassword"] button, button[aria-label="Show password"], button[title="Show password"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background: rgba(10, 10, 15, 0.95) !important;
+    border-right: 1px solid rgba(0, 240, 255, 0.1) !important;
+}
+
+/* Footer fixed to bottom */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(5, 5, 10, 0.95);
+    padding: 12px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    z-index: 999;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -261,8 +209,8 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.markdown("""
-    <div class="hero-container" style="max-width: 500px; margin: 100px auto;">
-        <h2 style="font-size: 2.5rem; text-align: center;">Welcome Back</h2>
+    <div class="hero-container" style="max-width: 500px; margin: 80px auto;">
+        <h2 style="font-size: 2.2rem; text-align: center;">Welcome Back</h2>
         <p style="text-align: center; color: #64748b;">Log in to your LinguaNova account</p>
     </div>
     """, unsafe_allow_html=True)
@@ -274,7 +222,6 @@ if not st.session_state.authenticated:
             email = st.text_input("Email")
             password = st.text_input("Password", type="password")
             if st.button("Log In", use_container_width=True):
-                # Placeholder for Firebase Auth: auth.sign_in_with_email_and_password(email, password)
                 if email and password:
                     st.session_state.authenticated = True
                     st.rerun()
@@ -316,17 +263,28 @@ TTS_LANG_MAP = {
     "Serbian": "sr", "Croatian": "hr", "Bulgarian": "bg", "Tagalog": "tl"
 }
 
-# Sidebar Content
+# Sidebar Content with Live Profile
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; font-size: 1.5rem;'>LinguaNova</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #00f0ff; letter-spacing: 2px;'>v4.0.0 // ONLINE</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #00f0ff; letter-spacing: 2px;'>v4.1.0 // ONLINE</p>", unsafe_allow_html=True)
     st.divider()
+    
+    # User Profile Snippet
+    user_stats = db_helper.get_stats()
+    profile = user_stats["profile"]
+    st.markdown(f"""
+    <div style="text-align: center; padding: 12px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed={profile['avatar_seed']}&colors=00f0ff" width="60" style="border-radius: 50%; border: 2px solid #00f0ff; box-shadow: 0 0 10px #00f0ff;">
+        <div style="font-family: 'Orbitron'; font-size: 1rem; color: #fff; margin-top: 6px;">{profile['username']}</div>
+        <div style="font-size: 0.85rem; color: #00f0ff; font-weight: 700;">⚡ {user_stats['level_name']} (Lvl {user_stats['level_num']})</div>
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 4px;">XP: <b style="color: #00ffaa;">{profile['xp']}</b> | Streak: <b style="color: #ffaa00;">{profile['streak']} 🔥</b></div>
+    </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("### ⭐ Go Premium")
     st.markdown("<p style='font-size: 0.9rem; color: #a0aec0;'>Unlock unlimited coaching, priority matching, and premium voices.</p>", unsafe_allow_html=True)
     if st.button("Subscribe Now", use_container_width=True):
         st.info("Redirecting to secure Stripe checkout... (Simulation mode)")
-        # In production: st.markdown(f'<meta http-equiv="refresh" content="0;url={STRIPE_PAYMENT_LINK}">', unsafe_allow_html=True)
     
     st.divider()
     if st.button("Log Out"):
@@ -342,7 +300,7 @@ def generate_tts(text, lang):
             with open("response.mp3", "rb") as f:
                 b64 = base64.b64encode(f.read()).decode()
             return f'<audio autoplay="true" src="data:audio/mp3;base64,{b64}"></audio>'
-        except Exception as e:
+        except Exception:
             return ""
     return ""
 
@@ -377,7 +335,7 @@ with tab1:
         with col2:
             target_lang = st.selectbox("I want to practice:", LANGUAGES, index=LANGUAGES.index("Spanish"))
             
-    global_msgs = load_messages("global")
+    global_msgs = db_helper.load_messages("global")
     
     if "partner_joined" not in st.session_state:
         st.session_state.partner_joined = False
@@ -387,22 +345,23 @@ with tab1:
             with st.spinner("Connecting..."):
                 time.sleep(1)
                 st.session_state.partner_joined = True
-                save_message("global", "system", f"Connected with a genuine partner practicing {user_lang}. Their native language is {target_lang}.")
+                db_helper.save_message("global", "system", f"Connected with a genuine partner practicing {user_lang}. Their native language is {target_lang}.")
                 st.rerun()
     else:
         for msg in global_msgs:
             render_msg(msg["role"], msg["content"])
 
         if prompt := st.chat_input(" ", key="global_input"):
-            save_message("global", "user", prompt)
+            db_helper.save_message("global", "user", prompt)
             render_msg("user", prompt)
+            db_helper.add_xp(10) # Award XP
             
             with st.spinner("AI Moderator analyzing..."):
                 mod_prompt = f"The user is writing in {target_lang}. Message: '{prompt}'. If there are errors, provide a ONE-SENTENCE correction in English. If perfect, reply EXACTLY with 'Perfect'. Do not converse."
                 try:
                     mod_response = model.generate_content(mod_prompt).text.strip()
                     if "Perfect" not in mod_response and "perfect" not in mod_response:
-                        save_message("global", "moderator", mod_response)
+                        db_helper.save_message("global", "moderator", mod_response)
                         render_msg("moderator", mod_response)
                 except Exception:
                     pass
@@ -411,7 +370,7 @@ with tab1:
                 partner_prompt = f"You are a native {target_lang} speaker doing a language exchange. User says: '{prompt}'. Reply naturally in {target_lang}. Keep it short (1-2 sentences). Add a brief cultural insight if relevant."
                 try:
                     partner_response = model.generate_content(partner_prompt).text
-                    save_message("global", "assistant", partner_response)
+                    db_helper.save_message("global", "assistant", partner_response)
                     render_msg("assistant", partner_response)
                     
                     audio_html = generate_tts(partner_response, target_lang)
@@ -421,9 +380,32 @@ with tab1:
                     st.error(f"Connection issue with partner: {e}")
                     
         st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Save Session & Archive Tools
+        col_g1, col_g2, col_g3 = st.columns([1.5, 1, 1])
+        with col_g1:
+            g_title = st.text_input("Session Name:", placeholder="e.g. Spanish Basics Exchange", key="g_title_in")
+        with col_g2:
+            if st.button("💾 Save Session", key="btn_save_global"):
+                ok, msg = db_helper.save_chat_session(g_title, "global")
+                if ok:
+                    st.success(msg)
+                    st.balloons()
+                else:
+                    st.warning(msg)
+        with col_g3:
+            transcript_txt = "\n".join([f"[{m['role'].upper()}]: {m['content']}" for m in global_msgs])
+            st.download_button(
+                "📥 Export (.txt)",
+                data=transcript_txt,
+                file_name=f"LinguaNova_Global_{int(time.time())}.txt",
+                mime="text/plain",
+                key="btn_dl_global"
+            )
+            
         if st.button("Disconnect & Clear Chat", key="clear_global"):
             st.session_state.partner_joined = False
-            clear_messages("global")
+            db_helper.clear_messages("global")
             st.rerun()
 
 # --- TAB 2: AI Coach ---
@@ -440,7 +422,7 @@ with tab2:
         st.markdown("<p style='font-weight: 600; color: #00f0ff; letter-spacing: 1px;'>🎙️ Initialize Voice Link:</p>", unsafe_allow_html=True)
         audio_bytes = audio_recorder(key="solo_audio", text="", recording_color="#ff0055", neutral_color="#00f0ff", icon_name="microphone", icon_size="2x")
     
-    solo_msgs = load_messages("solo")
+    solo_msgs = db_helper.load_messages("solo")
     for msg in solo_msgs:
         render_msg(msg["role"], msg["content"])
 
@@ -457,8 +439,9 @@ with tab2:
                 st.error(f"Failed to transcribe audio: {e}")
 
     if user_input_text:
-        save_message("solo", "user", user_input_text)
+        db_helper.save_message("solo", "user", user_input_text)
         render_msg("user", user_input_text)
+        db_helper.add_xp(10) # Award XP
         
         with st.spinner("Coach is thinking..."):
             system_instruction = f"You are an elite AI language coach for {practice_lang}. We are doing a roleplay: {scenario}. Reply in {practice_lang}. If they make a mistake, gently correct them in English in parentheses, provide the cultural context, and then continue the roleplay naturally."
@@ -472,7 +455,7 @@ with tab2:
                         chat.history.append({"role": role, "parts": [{"text": m["content"]}]})
                     
                 response = chat.send_message(user_input_text)
-                save_message("solo", "assistant", response.text)
+                db_helper.save_message("solo", "assistant", response.text)
                 render_msg("assistant", response.text)
                 
                 audio_html = generate_tts(response.text, practice_lang)
@@ -482,8 +465,31 @@ with tab2:
                 st.error(f"Error connecting to AI Coach: {e}")
 
     st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Save Session & Archive Tools
+    col_c1, col_c2, col_c3 = st.columns([1.5, 1, 1])
+    with col_c1:
+        c_title = st.text_input("Coach Session Name:", placeholder=f"e.g. {practice_lang} {scenario}", key="c_title_in")
+    with col_c2:
+        if st.button("💾 Save Session", key="btn_save_coach"):
+            ok, msg = db_helper.save_chat_session(c_title, "solo")
+            if ok:
+                st.success(msg)
+                st.balloons()
+            else:
+                st.warning(msg)
+    with col_c3:
+        transcript_coach = "\n".join([f"[{m['role'].upper()}]: {m['content']}" for m in solo_msgs])
+        st.download_button(
+            "📥 Export (.txt)",
+            data=transcript_coach,
+            file_name=f"LinguaNova_Coach_{int(time.time())}.txt",
+            mime="text/plain",
+            key="btn_dl_coach"
+        )
+        
     if st.button("Clear Coach History", key="clear_solo"):
-        clear_messages("solo")
+        db_helper.clear_messages("solo")
         st.rerun()
 
 # --- TAB 3: DICTIONARY ---
@@ -519,15 +525,14 @@ with tab3:
                 try:
                     response = model.generate_content(prompt)
                     st.markdown(f"<div class='dict-card'>{response.text}</div>", unsafe_allow_html=True)
+                    db_helper.add_xp(5) # Award XP
                     
                     audio_html = generate_tts(word, dict_lang)
                     if audio_html:
                         st.markdown(audio_html, unsafe_allow_html=True)
-                        st.success("🔊 Audio pronunciation played!")
+                        st.success("🔊 Audio pronunciation played! (+5 XP)")
                 except Exception as e:
                     st.error(f"Error fetching dictionary entry: {e}")
 
+st.markdown('<br><br>', unsafe_allow_html=True)
 st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
-
-
-
