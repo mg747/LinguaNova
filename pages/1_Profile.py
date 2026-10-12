@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import urllib.parse
 
 # Ensure root path is accessible for db_helper
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -17,10 +18,30 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"], .stApp, .stApp p, .stApp span, .stApp div, .stApp label, .stApp li {
-    font-family: 'Rajdhani', sans-serif !important;
+html, body, .stApp, p, label, li {
+    font-family: 'Rajdhani', sans-serif;
     font-size: 1.1rem;
-    color: #e0e6ed !important;
+    color: #e0e6ed;
+    line-height: 1.5;
+}
+
+/* Prevent icon ligature breaking into text like arrow_down */
+[data-testid*="stIcon"],
+[class*="material-symbols"],
+[class*="material-icons"],
+details summary span:first-child,
+[data-testid="stExpander"] summary span:first-child {
+    font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
+    font-size: 1.25rem !important;
+    width: auto !important;
+    margin-right: 8px !important;
+    display: inline-block !important;
+}
+
+[data-testid="stExpander"] summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Orbitron', sans-serif !important;
@@ -28,6 +49,7 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    margin-bottom: 0.8rem !important;
 }
 .stApp {
     background-color: #05050a !important;
@@ -35,6 +57,9 @@ h1, h2, h3, h4, h5, h6 {
         radial-gradient(circle at 15% 50%, rgba(13, 110, 253, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 50%);
     background-attachment: fixed;
+}
+.main .block-container {
+    padding-bottom: 120px !important;
 }
 .glass-card, div[data-testid="stVerticalBlockBorderWrapper"] {
     background: rgba(15, 15, 25, 0.6) !important;
@@ -121,20 +146,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Inputs: clean white background, black bold text */
-[data-baseweb="input"], [data-baseweb="base-input"], .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
+[data-baseweb="input"], [data-baseweb="base-input"], .stTextArea>div>div>textarea {
     background-color: #ffffff !important;
     border-radius: 8px !important;
     border: 2px solid rgba(0, 240, 255, 0.5) !important;
 }
-[data-baseweb="input"] input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea, [data-testid="stChatInput"] textarea {
+[data-baseweb="input"] input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
     color: #000000 !important;
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 1.15rem !important;
-    padding: 0.75rem 1.25rem !important;
+    padding: 0.6rem 1rem !important;
     -webkit-text-fill-color: #000000 !important;
 }
-[data-baseweb="input"]:focus-within, .stTextArea>div>div>textarea:focus, [data-testid="stChatInput"] textarea:focus {
+[data-baseweb="input"]:focus-within, .stTextArea>div>div>textarea:focus {
     border-color: #00f0ff !important;
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.5) !important;
 }
@@ -144,17 +169,37 @@ h1, h2, h3, h4, h5, h6 {
     height: 24px !important;
 }
 
-/* Footer fixed to bottom */
+/* Footer with Social Icons */
 .app-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background-color: rgba(5, 5, 10, 0.95);
-    padding: 12px;
-    text-align: center;
+    padding: 12px 24px;
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 999;
+}
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.social-icons a {
+    color: #00f0ff !important;
+    text-decoration: none !important;
+    font-size: 1.15rem;
+    margin-left: 14px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+}
+.social-icons a:hover {
+    transform: translateY(-2px) scale(1.15);
+    color: #ffffff !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -230,20 +275,30 @@ with col_prog:
 st.markdown("### 🏅 Neural Achievements")
 with st.container(border=True):
     badges_html = ""
-    # Badge 1: Starter
     badges_html += "<span class='badge-unlocked'>🌟 First Contact</span>" if stats['total_messages'] >= 1 else "<span class='badge-locked'>🔒 First Contact</span>"
-    # Badge 2: Polyglot in Training
     badges_html += "<span class='badge-unlocked'>⚡ Cyber Apprentice (100+ XP)</span>" if profile['xp'] >= 100 else "<span class='badge-locked'>🔒 Cyber Apprentice (100 XP)</span>"
-    # Badge 3: Streak master
     badges_html += "<span class='badge-unlocked'>🔥 Dedicated Voyager (3+ Day Streak)</span>" if profile['streak'] >= 3 else "<span class='badge-locked'>🔒 Dedicated Voyager (3 Days)</span>"
-    # Badge 4: Gamer
     badges_html += "<span class='badge-unlocked'>🎮 Arcade Challenger</span>" if stats['total_games'] >= 1 else "<span class='badge-locked'>🔒 Arcade Challenger</span>"
-    # Badge 5: Archivist
     badges_html += "<span class='badge-unlocked'>💾 Data Archivist</span>" if stats['total_sessions'] >= 1 else "<span class='badge-locked'>🔒 Data Archivist</span>"
-    # Badge 6: Neural Master
     badges_html += "<span class='badge-unlocked'>🌌 Neural Master (500+ XP)</span>" if profile['xp'] >= 500 else "<span class='badge-locked'>🔒 Neural Master (500 XP)</span>"
     
     st.markdown(f"<div style='margin: 10px 0;'>{badges_html}</div>", unsafe_allow_html=True)
+
+# Share Profile Progress
+share_profile_txt = f"I'm Level {stats['level_num']} ({stats['level_name']}) on LinguaNova with {profile['xp']} XP and a {profile['streak']}-day streak! 🌐🔥"
+encoded_p_txt = urllib.parse.quote(share_profile_txt)
+p_t_url = f"https://twitter.com/intent/tweet?text={encoded_p_txt}&url=https://linguanova.streamlit.app"
+p_w_url = f"https://api.whatsapp.com/send?text={encoded_p_txt}%20https://linguanova.streamlit.app"
+p_l_url = f"https://www.linkedin.com/sharing/share-offsite/?url=https://linguanova.streamlit.app"
+
+st.markdown(f"""
+<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding: 10px 14px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 10px;">
+    <span style="font-family: 'Orbitron'; font-size: 0.85rem; color: #00f0ff;">📢 SHARE STATUS:</span>
+    <a href="{p_t_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #000; color: #fff; font-size: 0.82rem; font-weight: bold; border: 1px solid #333;">𝕏 Twitter</a>
+    <a href="{p_w_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #25D366; color: #fff; font-size: 0.82rem; font-weight: bold;">💬 WhatsApp</a>
+    <a href="{p_l_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #0077b5; color: #fff; font-size: 0.82rem; font-weight: bold;">💼 LinkedIn</a>
+</div>
+""", unsafe_allow_html=True)
 
 # Profile Settings & Customization
 with st.expander("⚙️ Customize Profile & Learning Goals"):
@@ -284,7 +339,6 @@ else:
         with st.expander(f"📁 {s['title']} — {s['summary']}"):
             st.caption(f"Archived on: {s['created_at']} | Channel: {s['tab'].upper()}")
             
-            # Formatted conversation text
             full_transcript = f"=== LinguaNova Lesson Archive ===\nTitle: {s['title']}\nDate: {s['created_at']}\nChannel: {s['tab']}\n\n"
             for m in s["messages"]:
                 st.markdown(f"**{m['role'].upper()}:** {m['content']}")
@@ -305,5 +359,21 @@ else:
                     st.success("Archive deleted.")
                     st.rerun()
 
-st.markdown('<br><br>', unsafe_allow_html=True)
-st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+# Footer with social media icons
+st.markdown("""
+<div class="app-footer">
+    <div class="footer-content">
+        <div style="color: #94a3b8; font-size: 0.9rem;">
+            © 2026 <b style="color: #00f0ff;">LinguaNova AI</b>. All rights reserved. | <a href="/About" target="_self" style="color: #00f0ff; text-decoration: none;">About</a> | <a href="/Contact" target="_self" style="color: #00f0ff; text-decoration: none;">Contact</a>
+        </div>
+        <div class="social-icons">
+            <a href="https://twitter.com" target="_blank" title="Follow us on X">𝕏</a>
+            <a href="https://github.com" target="_blank" title="GitHub">🐙</a>
+            <a href="https://discord.com" target="_blank" title="Discord Community">💬</a>
+            <a href="https://linkedin.com" target="_blank" title="LinkedIn">💼</a>
+            <a href="https://instagram.com" target="_blank" title="Instagram">📸</a>
+            <a href="https://youtube.com" target="_blank" title="YouTube">▶️</a>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)

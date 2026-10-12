@@ -4,6 +4,7 @@ import time
 from gtts import gTTS
 import os
 import base64
+import urllib.parse
 from audio_recorder_streamlit import audio_recorder
 from dotenv import load_dotenv
 import stripe
@@ -24,10 +25,30 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 /* Main App Font */
-html, body, [class*="css"], .stApp, .stApp p, .stApp span, .stApp div, .stApp label, .stApp li {
-    font-family: 'Rajdhani', sans-serif !important;
+html, body, .stApp, p, label, li {
+    font-family: 'Rajdhani', sans-serif;
     font-size: 1.1rem;
-    color: #e0e6ed !important;
+    color: #e0e6ed;
+    line-height: 1.5;
+}
+
+/* Prevent icon ligature breaking into text like arrow_down */
+[data-testid*="stIcon"],
+[class*="material-symbols"],
+[class*="material-icons"],
+details summary span:first-child,
+[data-testid="stExpander"] summary span:first-child {
+    font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
+    font-size: 1.25rem !important;
+    width: auto !important;
+    margin-right: 8px !important;
+    display: inline-block !important;
+}
+
+[data-testid="stExpander"] summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 
 /* Headings */
@@ -37,6 +58,7 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    margin-bottom: 0.6rem !important;
 }
 
 .stApp {
@@ -45,6 +67,10 @@ h1, h2, h3, h4, h5, h6 {
         radial-gradient(circle at 15% 50%, rgba(13, 110, 253, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 50%);
     background-attachment: fixed;
+}
+
+.main .block-container {
+    padding-bottom: 120px !important;
 }
 
 /* Futuristic 3D Glass Cards */
@@ -57,6 +83,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05) !important;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
     margin-bottom: 1.5rem !important;
+    word-break: break-word !important;
 }
 
 .glass-card:hover, div[data-testid="stVerticalBlockBorderWrapper"]:hover {
@@ -78,6 +105,22 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
 }
 
+.hero-container::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(0, 240, 255, 0.08), transparent);
+    transform: rotate(45deg);
+    animation: sweep 6s infinite linear;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes sweep {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
 .hero-title {
     font-size: 3.5rem !important;
     font-weight: 900 !important;
@@ -87,6 +130,14 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: none !important;
     margin-bottom: 0.5rem !important;
     letter-spacing: 2px !important;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-subtitle {
+    position: relative;
+    z-index: 1;
+    font-size: 1.15rem !important;
 }
 
 /* Custom Message Cards */
@@ -107,7 +158,6 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: 8px !important;
     padding: 1rem !important;
     margin-bottom: 1rem !important;
-    margin-top: -0.5rem !important;
     color: #00ffaa !important;
     box-shadow: 0 0 15px rgba(0, 255, 170, 0.1) !important;
 }
@@ -162,7 +212,7 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 1.15rem !important;
-    padding: 0.75rem 1.25rem !important;
+    padding: 0.6rem 1rem !important;
     -webkit-text-fill-color: #000000 !important;
 }
 [data-baseweb="input"]:focus-within, .stTextArea>div>div>textarea:focus, [data-testid="stChatInput"] textarea:focus {
@@ -188,20 +238,57 @@ button[data-baseweb="tab"][aria-selected="true"] p {
     border-right: 1px solid rgba(0, 240, 255, 0.1) !important;
 }
 
-/* Footer fixed to bottom */
+/* Footer with Social Icons */
 .app-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background-color: rgba(5, 5, 10, 0.95);
-    padding: 12px;
-    text-align: center;
+    padding: 12px 24px;
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 999;
 }
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.social-icons a {
+    color: #00f0ff !important;
+    text-decoration: none !important;
+    font-size: 1.15rem;
+    margin-left: 14px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+}
+.social-icons a:hover {
+    transform: translateY(-2px) scale(1.15);
+    color: #ffffff !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
+def render_share_bar(share_text, app_url="https://linguanova.streamlit.app"):
+    encoded_text = urllib.parse.quote(share_text)
+    encoded_url = urllib.parse.quote(app_url)
+    
+    t_url = f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}"
+    w_url = f"https://api.whatsapp.com/send?text={encoded_text}%20{encoded_url}"
+    l_url = f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}"
+    
+    st.markdown(f"""
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; padding: 10px 14px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 10px;">
+        <span style="font-family: 'Orbitron'; font-size: 0.85rem; color: #00f0ff;">📢 SHARE LESSON:</span>
+        <a href="{t_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #000; color: #fff; font-size: 0.82rem; font-weight: bold; border: 1px solid #333;">𝕏 Twitter</a>
+        <a href="{w_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #25D366; color: #fff; font-size: 0.82rem; font-weight: bold;">💬 WhatsApp</a>
+        <a href="{l_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #0077b5; color: #fff; font-size: 0.82rem; font-weight: bold;">💼 LinkedIn</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Authentication State
 if "authenticated" not in st.session_state:
@@ -266,7 +353,7 @@ TTS_LANG_MAP = {
 # Sidebar Content with Live Profile
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; font-size: 1.5rem;'>LinguaNova</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #00f0ff; letter-spacing: 2px;'>v4.1.0 // ONLINE</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #00f0ff; letter-spacing: 2px;'>v4.2.0 // ONLINE</p>", unsafe_allow_html=True)
     st.divider()
     
     # User Profile Snippet
@@ -275,7 +362,7 @@ with st.sidebar:
     st.markdown(f"""
     <div style="text-align: center; padding: 12px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
         <img src="https://api.dicebear.com/7.x/bottts/svg?seed={profile['avatar_seed']}&colors=00f0ff" width="60" style="border-radius: 50%; border: 2px solid #00f0ff; box-shadow: 0 0 10px #00f0ff;">
-        <div style="font-family: 'Orbitron'; font-size: 1rem; color: #fff; margin-top: 6px;">{profile['username']}</div>
+        <div style="font-family: 'Orbitron'; font-size: 1rem; color: #fff; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{profile['username']}</div>
         <div style="font-size: 0.85rem; color: #00f0ff; font-weight: 700;">⚡ {user_stats['level_name']} (Lvl {user_stats['level_num']})</div>
         <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 4px;">XP: <b style="color: #00ffaa;">{profile['xp']}</b> | Streak: <b style="color: #ffaa00;">{profile['streak']} 🔥</b></div>
     </div>
@@ -354,7 +441,7 @@ with tab1:
         if prompt := st.chat_input(" ", key="global_input"):
             db_helper.save_message("global", "user", prompt)
             render_msg("user", prompt)
-            db_helper.add_xp(10) # Award XP
+            db_helper.add_xp(10)
             
             with st.spinner("AI Moderator analyzing..."):
                 mod_prompt = f"The user is writing in {target_lang}. Message: '{prompt}'. If there are errors, provide a ONE-SENTENCE correction in English. If perfect, reply EXACTLY with 'Perfect'. Do not converse."
@@ -391,6 +478,7 @@ with tab1:
                 if ok:
                     st.success(msg)
                     st.balloons()
+                    render_share_bar(f"Completed an authentic language exchange session in {target_lang} on LinguaNova! 🌍")
                 else:
                     st.warning(msg)
         with col_g3:
@@ -441,7 +529,7 @@ with tab2:
     if user_input_text:
         db_helper.save_message("solo", "user", user_input_text)
         render_msg("user", user_input_text)
-        db_helper.add_xp(10) # Award XP
+        db_helper.add_xp(10)
         
         with st.spinner("Coach is thinking..."):
             system_instruction = f"You are an elite AI language coach for {practice_lang}. We are doing a roleplay: {scenario}. Reply in {practice_lang}. If they make a mistake, gently correct them in English in parentheses, provide the cultural context, and then continue the roleplay naturally."
@@ -476,6 +564,7 @@ with tab2:
             if ok:
                 st.success(msg)
                 st.balloons()
+                render_share_bar(f"Practiced {practice_lang} '{scenario}' with my AI Voice Coach on LinguaNova! 🤖🎙️")
             else:
                 st.warning(msg)
     with col_c3:
@@ -494,24 +583,28 @@ with tab2:
 
 # --- TAB 3: DICTIONARY ---
 with tab3:
-    st.markdown("### Smart Dictionary")
+    st.markdown("### Smart Dictionary & Phonetics")
     
     with st.container(border=True):
-        st.write("Query the global linguistic database for real-time translation and phonetics.")
-        col_word, col_lang = st.columns(2)
+        st.write("Query the global linguistic database for real-time definitions, phonetic breakdown, and native audio.")
+        
+        # Proper Search Bar Placement
+        col_word, col_lang, col_btn = st.columns([2.5, 1.5, 1])
         with col_word:
-            word = st.text_input("Enter a word or phrase:")
+            word = st.text_input("Search Term:", placeholder="Enter a word or phrase to look up...", key="dict_word_input")
         with col_lang:
-            dict_lang = st.selectbox("Language of the word:", LANGUAGES, index=LANGUAGES.index("English"), key="dict_lang")
+            dict_lang = st.selectbox("Language:", LANGUAGES, index=LANGUAGES.index("English"), key="dict_lang")
+        with col_btn:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            lookup_clicked = st.button("🔍 Search", type="primary", use_container_width=True)
         
         style = st.selectbox("Dictionary Style:", ["Oxford Concise", "Cambridge", "Collins", "Urban Dictionary", "Lexico"])
-        lookup_clicked = st.button("Look up", type="primary")
         
     if lookup_clicked:
-        if not word:
-            st.warning("Please enter a word.")
+        if not word.strip():
+            st.warning("Please enter a word or phrase to search.")
         else:
-            with st.spinner(f"Searching {style}..."):
+            with st.spinner(f"Querying {style} database..."):
                 prompt = f"""
                 You are a dictionary engine simulating the style of '{style}'.
                 Provide a detailed entry for the {dict_lang} word/phrase '{word}'.
@@ -520,19 +613,37 @@ with tab3:
                 2. Part of speech.
                 3. Meaning/Definition.
                 4. Two example sentences (with English translations if the word is not English).
-                Keep the formatting clean and engaging.
+                Keep the formatting clean, elegant, and engaging.
                 """
                 try:
                     response = model.generate_content(prompt)
                     st.markdown(f"<div class='dict-card'>{response.text}</div>", unsafe_allow_html=True)
-                    db_helper.add_xp(5) # Award XP
+                    db_helper.add_xp(5)
                     
                     audio_html = generate_tts(word, dict_lang)
                     if audio_html:
                         st.markdown(audio_html, unsafe_allow_html=True)
                         st.success("🔊 Audio pronunciation played! (+5 XP)")
+                        
+                    render_share_bar(f"Learned the meaning of '{word}' ({dict_lang}) on LinguaNova's Smart Dictionary! 📖")
                 except Exception as e:
                     st.error(f"Error fetching dictionary entry: {e}")
 
-st.markdown('<br><br>', unsafe_allow_html=True)
-st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+# Footer with social media icons
+st.markdown("""
+<div class="app-footer">
+    <div class="footer-content">
+        <div style="color: #94a3b8; font-size: 0.9rem;">
+            © 2026 <b style="color: #00f0ff;">LinguaNova AI</b>. All rights reserved. | <a href="/About" target="_self" style="color: #00f0ff; text-decoration: none;">About</a> | <a href="/Contact" target="_self" style="color: #00f0ff; text-decoration: none;">Contact</a>
+        </div>
+        <div class="social-icons">
+            <a href="https://twitter.com" target="_blank" title="Follow us on X">𝕏</a>
+            <a href="https://github.com" target="_blank" title="GitHub">🐙</a>
+            <a href="https://discord.com" target="_blank" title="Discord Community">💬</a>
+            <a href="https://linkedin.com" target="_blank" title="LinkedIn">💼</a>
+            <a href="https://instagram.com" target="_blank" title="Instagram">📸</a>
+            <a href="https://youtube.com" target="_blank" title="YouTube">▶️</a>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)

@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import base64
+import urllib.parse
 from gtts import gTTS
 
 # Ensure root path is accessible for db_helper
@@ -22,10 +23,30 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"], .stApp, .stApp p, .stApp span, .stApp div, .stApp label, .stApp li {
-    font-family: 'Rajdhani', sans-serif !important;
+html, body, .stApp, p, label, li {
+    font-family: 'Rajdhani', sans-serif;
     font-size: 1.1rem;
-    color: #e0e6ed !important;
+    color: #e0e6ed;
+    line-height: 1.5;
+}
+
+/* Prevent icon ligature breaking into text like arrow_down */
+[data-testid*="stIcon"],
+[class*="material-symbols"],
+[class*="material-icons"],
+details summary span:first-child,
+[data-testid="stExpander"] summary span:first-child {
+    font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
+    font-size: 1.25rem !important;
+    width: auto !important;
+    margin-right: 8px !important;
+    display: inline-block !important;
+}
+
+[data-testid="stExpander"] summary {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
 }
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Orbitron', sans-serif !important;
@@ -33,6 +54,7 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    margin-bottom: 0.8rem !important;
 }
 .stApp {
     background-color: #05050a !important;
@@ -40,6 +62,9 @@ h1, h2, h3, h4, h5, h6 {
         radial-gradient(circle at 15% 50%, rgba(13, 110, 253, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.08) 0%, transparent 50%);
     background-attachment: fixed;
+}
+.main .block-container {
+    padding-bottom: 120px !important;
 }
 .glass-card, div[data-testid="stVerticalBlockBorderWrapper"] {
     background: rgba(15, 15, 25, 0.6) !important;
@@ -103,7 +128,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'Rajdhani', sans-serif !important;
     font-weight: 700 !important;
     font-size: 1.15rem !important;
-    padding: 0.75rem 1.25rem !important;
+    padding: 0.6rem 1rem !important;
     -webkit-text-fill-color: #000000 !important;
 }
 [data-baseweb="input"]:focus-within, .stTextArea>div>div>textarea:focus, [data-testid="stChatInput"] textarea:focus {
@@ -116,20 +141,72 @@ h1, h2, h3, h4, h5, h6 {
     height: 24px !important;
 }
 
-/* Footer fixed to bottom */
+/* Footer with Social Icons */
 .app-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background-color: rgba(5, 5, 10, 0.95);
-    padding: 12px;
-    text-align: center;
+    padding: 12px 24px;
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     z-index: 999;
 }
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.social-icons a {
+    color: #00f0ff !important;
+    text-decoration: none !important;
+    font-size: 1.15rem;
+    margin-left: 14px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    display: inline-block;
+}
+.social-icons a:hover {
+    transform: translateY(-2px) scale(1.15);
+    color: #ffffff !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
+# Shared Extensive Language List
+ALL_LANGUAGES = sorted([
+    "English", "Spanish", "French", "German", "Japanese", "Chinese (Mandarin)", 
+    "Italian", "Portuguese", "Arabic", "Hindi", "Bengali", "Russian", "Korean",
+    "Swahili", "Turkish", "Vietnamese", "Dutch", "Polish", "Indonesian", "Thai",
+    "Edo", "Irish (Gaeilge)", "Igbo", "Yoruba", "Hausa", "Fulani", "Zulu", "Amharic",
+    "Swedish", "Norwegian", "Danish", "Finnish", "Greek", "Hebrew", "Persian",
+    "Urdu", "Punjabi", "Tamil", "Telugu", "Marathi", "Gujarati", "Malayalam",
+    "Burmese", "Khmer", "Lao", "Malay", "Tagalog", "Cebuano", "Javanese", "Sundanese",
+    "Hungarian", "Czech", "Slovak", "Romanian", "Bulgarian", "Serbian", "Croatian",
+    "Ukrainian", "Afrikaans"
+])
+
+def render_share_bar(share_text, app_url="https://linguanova.streamlit.app"):
+    encoded_text = urllib.parse.quote(share_text)
+    encoded_url = urllib.parse.quote(app_url)
+    
+    t_url = f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}"
+    w_url = f"https://api.whatsapp.com/send?text={encoded_text}%20{encoded_url}"
+    l_url = f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}"
+    r_url = f"https://reddit.com/submit?url={encoded_url}&title={encoded_text}"
+    
+    st.markdown(f"""
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; padding: 10px 14px; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 10px;">
+        <span style="font-family: 'Orbitron'; font-size: 0.85rem; color: #00f0ff;">📢 SHARE VICTORY:</span>
+        <a href="{t_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #000; color: #fff; font-size: 0.82rem; font-weight: bold; border: 1px solid #333;">𝕏 Twitter</a>
+        <a href="{w_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #25D366; color: #fff; font-size: 0.82rem; font-weight: bold;">💬 WhatsApp</a>
+        <a href="{l_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #0077b5; color: #fff; font-size: 0.82rem; font-weight: bold;">💼 LinkedIn</a>
+        <a href="{r_url}" target="_blank" style="text-decoration: none; padding: 5px 12px; border-radius: 6px; background: #FF4500; color: #fff; font-size: 0.82rem; font-weight: bold;">🤖 Reddit</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # API Setup
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -144,19 +221,24 @@ else:
 TTS_LANG_MAP = {
     "English": "en", "Spanish": "es", "French": "fr", "German": "de", 
     "Japanese": "ja", "Chinese (Mandarin)": "zh-CN", "Italian": "it", 
-    "Portuguese": "pt", "Arabic": "ar", "Hindi": "hi", "Russian": "ru"
+    "Portuguese": "pt", "Arabic": "ar", "Hindi": "hi", "Russian": "ru",
+    "Korean": "ko", "Turkish": "tr", "Vietnamese": "vi", "Dutch": "nl",
+    "Polish": "pl", "Indonesian": "id", "Thai": "th", "Swedish": "sv",
+    "Greek": "el", "Hebrew": "he", "Tagalog": "tl"
 }
 
 def play_audio(text, lang):
-    code = TTS_LANG_MAP.get(lang, "en")
-    try:
-        tts = gTTS(text=text, lang=code)
-        tts.save("game_sound.mp3")
-        with open("game_sound.mp3", "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        return f'<audio autoplay="true" src="data:audio/mp3;base64,{b64}"></audio>'
-    except Exception:
-        return ""
+    code = TTS_LANG_MAP.get(lang)
+    if code:
+        try:
+            tts = gTTS(text=text, lang=code)
+            tts.save("game_sound.mp3")
+            with open("game_sound.mp3", "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            return f'<audio autoplay="true" src="data:audio/mp3;base64,{b64}"></audio>'
+        except Exception:
+            return ""
+    return ""
 
 user_stats = db_helper.get_stats()
 profile = user_stats["profile"]
@@ -176,19 +258,19 @@ game_tab1, game_tab2, game_tab3 = st.tabs(["⚡ Vocab Blitz", "🧩 Sentence Puz
 # ==================== GAME 1: VOCAB BLITZ ====================
 with game_tab1:
     st.markdown("### ⚡ Vocab Blitz Challenge")
-    st.markdown("Test your rapid comprehension. Complete the quiz to earn XP and level up!")
+    st.markdown("Test rapid vocabulary recognition across 50+ languages. Earn XP to level up!")
 
     col1, col2 = st.columns([1, 1])
     with col1:
-        game_lang = st.selectbox("Target Language:", ["Spanish", "French", "German", "Japanese", "Italian", "Portuguese", "Russian"], key="vb_lang")
+        game_lang = st.selectbox("Target Language:", ALL_LANGUAGES, index=ALL_LANGUAGES.index("Spanish"), key="vb_lang")
     with col2:
-        game_cat = st.selectbox("Challenge Topic:", ["Everyday Essentials", "Travel & Transit", "Cyberpunk & Tech", "Food & Restaurants", "Slang & Idioms"], key="vb_cat")
+        game_cat = st.selectbox("Challenge Topic:", ["Everyday Essentials", "Travel & Transit", "Cyberpunk & Tech", "Food & Restaurants", "Slang & Idioms", "Business & Work"], key="vb_cat")
 
     if st.button("🚀 Start New Blitz Quiz", key="btn_start_blitz"):
         with st.spinner("AI Generating dynamic quiz challenges..."):
             prompt = f"""
             You are a language learning game engine. Generate 4 multiple choice questions for learning {game_lang} vocabulary about topic '{game_cat}'.
-            Format your response strictly as valid JSON with no markdown formatting around it, matching this schema:
+            Format your response strictly as valid JSON with no markdown formatting around it:
             [
               {{
                 "question": "What is the meaning of [Target word] in English?",
@@ -201,7 +283,6 @@ with game_tab1:
             """
             try:
                 res = model.generate_content(prompt).text.strip()
-                # Clean JSON fences if present
                 if res.startswith("```"):
                     res = res.split("```")[1]
                     if res.startswith("json"):
@@ -252,6 +333,8 @@ with game_tab1:
                 
                 if score >= 3:
                     st.balloons()
+                    
+                render_share_bar(f"🎮 Scored {score}/{len(questions)} in {st.session_state.vb_lang_used} Vocab Blitz on LinguaNova! Can you beat my streak? 🔥")
 
 # ==================== GAME 2: SENTENCE PUZZLE ====================
 with game_tab2:
@@ -260,7 +343,7 @@ with game_tab2:
 
     sc_col1, sc_col2 = st.columns([1, 1])
     with sc_col1:
-        sc_lang = st.selectbox("Language:", ["Spanish", "French", "German", "Japanese", "Italian"], key="sc_lang")
+        sc_lang = st.selectbox("Language:", ALL_LANGUAGES, index=ALL_LANGUAGES.index("French"), key="sc_lang")
     with sc_col2:
         sc_diff = st.selectbox("Difficulty:", ["Beginner", "Intermediate", "Advanced"], key="sc_diff")
 
@@ -294,7 +377,6 @@ with game_tab2:
         with st.container(border=True):
             st.markdown(f"#### 🎯 Target Meaning: *\"{p['english']}\"*")
             
-            # Show scrambled word tokens
             token_html = " ".join([f"<span class='arcade-badge' style='margin: 4px;'>{w}</span>" for w in p['scrambled_words']])
             st.markdown(f"<div style='margin: 15px 0;'>{token_html}</div>", unsafe_allow_html=True)
             
@@ -313,6 +395,7 @@ with game_tab2:
                             audio = play_audio(p['solution'], st.session_state.puzzle_lang)
                             if audio:
                                 st.markdown(audio, unsafe_allow_html=True)
+                            render_share_bar(f"🧩 Solved the {st.session_state.puzzle_lang} Sentence Architect challenge on LinguaNova! 🚀")
                         else:
                             st.error(f"Not quite! Solution: **{p['solution']}**")
                             st.write(eval_res)
@@ -326,7 +409,7 @@ with game_tab3:
 
     m_col1, m_col2 = st.columns([1, 1])
     with m_col1:
-        m_lang = st.selectbox("Game Language:", ["Spanish", "French", "German", "Italian", "Japanese"], key="m_lang")
+        m_lang = st.selectbox("Game Language:", ALL_LANGUAGES, index=ALL_LANGUAGES.index("Japanese"), key="m_lang")
     with m_col2:
         m_theme = st.selectbox("Mystery Theme:", ["Mystery Location", "Secret Occupation", "Alien Artifact", "Culinary Dish"], key="m_theme")
 
@@ -364,7 +447,7 @@ with game_tab3:
             st.markdown(f"#### 📻 Incoming Transmission ({st.session_state.mystery_lang}):")
             st.markdown(f"<div class='glass-card' style='font-size: 1.25rem; color: #00f0ff;'>\"{m['clues_target_lang']}\"</div>", unsafe_allow_html=True)
             
-            with st.expander("🔍 Reveal English Translation"):
+            with st.expander("Translation Clue (Click to Reveal)"):
                 st.write(m['english_translation'])
 
             st.markdown(f"**Question: {m['question']}**")
@@ -376,9 +459,26 @@ with game_tab3:
                     st.info(m["explanation"])
                     db_helper.record_game_score("Mystery Detective", 1, 1, st.session_state.mystery_lang)
                     st.balloons()
+                    render_share_bar(f"🕵️ Cracked the {st.session_state.mystery_lang} Mystery Detective puzzle on LinguaNova! 🏆")
                 else:
                     st.error(f"Case unsolved! The answer was **{m['correct_choice']}**.")
                     st.write(m["explanation"])
 
-# Footer
-st.markdown('<div class="app-footer">© 2026 LinguaNova AI. All rights reserved. | <a href="/About" target="_self">About</a> | <a href="/Contact" target="_self">Contact</a></div>', unsafe_allow_html=True)
+# Footer with social media icons
+st.markdown("""
+<div class="app-footer">
+    <div class="footer-content">
+        <div style="color: #94a3b8; font-size: 0.9rem;">
+            © 2026 <b style="color: #00f0ff;">LinguaNova AI</b>. All rights reserved. | <a href="/About" target="_self" style="color: #00f0ff; text-decoration: none;">About</a> | <a href="/Contact" target="_self" style="color: #00f0ff; text-decoration: none;">Contact</a>
+        </div>
+        <div class="social-icons">
+            <a href="https://twitter.com" target="_blank" title="Follow us on X">𝕏</a>
+            <a href="https://github.com" target="_blank" title="GitHub">🐙</a>
+            <a href="https://discord.com" target="_blank" title="Discord Community">💬</a>
+            <a href="https://linkedin.com" target="_blank" title="LinkedIn">💼</a>
+            <a href="https://instagram.com" target="_blank" title="Instagram">📸</a>
+            <a href="https://youtube.com" target="_blank" title="YouTube">▶️</a>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
